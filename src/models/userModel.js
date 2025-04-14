@@ -7,13 +7,11 @@ const userSchema = new mongoose.Schema({
     },
     email: {
         type: String,
-        required: [true,"Please provide a email"],
+        required: [false,"Please provide a email"],
         unique: true
     },
-    password:{
-        type: String,
-        required: [true,"Please provide a password"]
-    },
+    password: { type: String, required: false }, // 👈 Optional for Google users
+    hasPassword: { type: Boolean, default: false }, // 👈 New field    
     isVerified:{
         type: Boolean,
         default: false

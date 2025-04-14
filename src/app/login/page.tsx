@@ -11,6 +11,32 @@ const LoginPage = () => {
   const router = useRouter();
   const { data: session } = useSession();
 
+  useEffect(() => {
+    const syncGoogleUser = async () => {
+      if (session?.user?.email && session.user.name) {
+        try {
+          const res = await axios.post('/api/auth/google', {
+            email: session.user.email,
+            name: session.user.name,
+            provider: 'google',
+          });
+          console.log("✅ Google user synced:", res.data);
+
+          // Check if user has password set
+          if (res.data.redirectToSetPassword) {
+            // Redirect user to set password page if they haven't set one
+            router.push('/set-password');
+          }
+        } catch (err) {
+          console.error("❌ Failed to sync Google user to backend:", err);
+          toast.error("Failed to sync Google user");
+        }
+      }
+    };
+  
+    syncGoogleUser();
+  }, [session, router]);
+
   const [user, setUser] = useState({
     email: "",
     password: "",
@@ -22,9 +48,18 @@ const LoginPage = () => {
   const onLogin = async () => {
     try {
       setLoading(true);
-      const response = await axios.post('/api/users/login', user);
-      console.log("Login success", response.data);
-      router.push('/profile');
+      const res = await signIn('credentials', {
+        redirect: false,
+        email: user.email,
+        password: user.password,
+      });
+      
+      if (res?.ok) {
+        router.push('/profile');
+      } else {
+        toast.error("Invalid credentials");
+      }
+      
     } catch (error: any) {
       console.log("Login failed");
       toast.error(error.response?.data?.message || error.message);
@@ -94,7 +129,6 @@ const LoginPage = () => {
       >
         Sign in with Google
       </button>
-
 
       <Link href={"/signup"} className="text-blue-500 underline">Visit Signup page</Link>
     </div>

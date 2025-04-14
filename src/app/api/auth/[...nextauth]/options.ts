@@ -67,25 +67,64 @@ export const authOptions: NextAuthOptions = {
   ],
 
   callbacks: {
-    async jwt({ token, user }) {
-      if (user) {
-        token._id = user._id ?? undefined;
-        token.isVerified = user.isVerified ?? true;
-        token.username = user.username ?? undefined; // ✅ Fix here
+    async jwt({ token, account, user, profile }) {
+      // Handle Google sign-in
+      if (account?.provider === "google") {
+        token.accessToken = account.access_token;
+        
+        // Access Google user ID via profile.sub (Google user ID)
+        token._id = profile?.sub;  // Google provides the user ID in 'sub'
+        token.username = profile?.name;  // You can use name or email as username
+        token.isVerified = true;  // Assuming Google users are verified by default
+        console.log("Google sign-in detected", profile);
       }
+  
+      // Handle Credentials login
+      if (user && account?.provider === "credentials") {
+        token._id = user._id;
+        token.username = user.username;
+        token.isVerified = user.isVerified;
+      }
+  
       return token;
     },
-
+  
     async session({ session, token }) {
-      if (token && session.user) {
-        session.user._id = token._id;
-        session.user.username = token.username;
-        session.user.isVerified = token.isVerified;
-      }
+      session.accessToken = token.accessToken;
+      session.user = {
+        ...session.user,
+        _id: token._id,
+        username: token.username,
+        isVerified: token.isVerified,
+      };
       return session;
     },
-  },
+  },  
+  events: {
+    async signIn({ account, profile }) {
+      if (account?.provider === "google" && profile) {
+        try {
+          const res = await fetch(`${process.env.NEXTAUTH_URL}/api/google-auth`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              email: profile.email,
+              name: profile.name,
+              provider: "google",
+            }),
+          });
 
+          if (!res.ok) {
+            console.error("❌ Failed to sync Google user to backend:", await res.text());
+          } else {
+            console.log("✅ Google user synced to backend");
+          }
+        } catch (err) {
+          console.error("❌ Google user sync error:", err);
+        }
+      }
+    },
+  },
   pages: {
     signIn: '/sign-in',
     error: '/sign-in',

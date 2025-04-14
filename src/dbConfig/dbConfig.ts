@@ -11,7 +11,13 @@ export async function connectDB() {
       throw new Error("❌ MONGO_URI is not defined in .env.local");
     }
 
-    await mongoose.connect(mongoUri);
+    // Add timeout settings here
+    await mongoose.connect(mongoUri, {
+      serverSelectionTimeoutMS: 5000,  // Timeout value in ms
+      socketTimeoutMS: 45000,          // Timeout for socket in ms
+    });
+    
+
     const connection = mongoose.connection;
 
     connection.on("connected", () => {
