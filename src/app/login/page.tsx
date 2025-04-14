@@ -22,11 +22,6 @@ const LoginPage = () => {
           });
           console.log("✅ Google user synced:", res.data);
 
-          // Check if user has password set
-          if (res.data.redirectToSetPassword) {
-            // Redirect user to set password page if they haven't set one
-            router.push('/set-password');
-          }
         } catch (err) {
           console.error("❌ Failed to sync Google user to backend:", err);
           toast.error("Failed to sync Google user");
@@ -50,9 +45,10 @@ const LoginPage = () => {
       setLoading(true);
       const res = await signIn('credentials', {
         redirect: false,
-        email: user.email,
+        identifier: user.email, // ✅ correct if email or username
         password: user.password,
       });
+      
       
       if (res?.ok) {
         router.push('/profile');

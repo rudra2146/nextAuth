@@ -12,10 +12,9 @@ export async function connectDB() {
     }
 
     // Add timeout settings here
-    await mongoose.connect(mongoUri, {
-      serverSelectionTimeoutMS: 5000,  // Timeout value in ms
-      socketTimeoutMS: 45000,          // Timeout for socket in ms
-    });
+    await mongoose.connect(mongoUri);
+
+    
     
 
     const connection = mongoose.connection;

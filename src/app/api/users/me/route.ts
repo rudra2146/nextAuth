@@ -6,16 +6,25 @@ import jwt from 'jsonwebtoken'
 import { getDataFromToken } from '@/helpers/getDataFromToken'
 connectDB()
 
-
-export async function POST(request: NextRequest){
+export async function POST(request: NextRequest) {
     try {
-        const userId = await getDataFromToken(request)
-        const user = await User.findOne({_id:userId}).select("-password")
-        return NextResponse.json({
-            message:"User found",
-            data:user
-        })
-    }catch (error:any) {
-        return NextResponse.json({error:error.message},{status:500})
+      const userId = await getDataFromToken(); // Call the function without request
+      if (!userId) {
+        throw new Error('User ID not found in token');
+      }
+  
+      const user = await User.findOne({ _id: userId }).select("-password");
+      if (!user) {
+        throw new Error('User not found');
+      }
+  
+      return NextResponse.json({
+        message: "User found",
+        data: user
+      });
+    } catch (error: any) {
+      console.error("Error fetching user:", error.message);
+      return NextResponse.json({ error: error.message }, { status: 500 });
     }
-}
+  }
+  

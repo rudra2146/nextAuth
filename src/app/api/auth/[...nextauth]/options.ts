@@ -13,21 +13,23 @@ export const authOptions: NextAuthOptions = {
       clientSecret: process.env.GOOGLE_CLIENT_SECRET!,
     }),
 
-    // ✅ Credentials Login
     CredentialsProvider({
       id: 'credentials',
       name: 'Credentials',
       credentials: {
-        identifier: { label: 'Email or Username', type: 'text' },
+        identifier: { label: 'Email', type: 'text' },
         password: { label: 'Password', type: 'password' },
       },
       async authorize(credentials): Promise<any> {
         await connectDB();
-
+      
+        console.log("🧪 Received credentials:", credentials);
+      
         if (!credentials?.identifier || !credentials?.password) {
+          console.log("❌ Missing identifier or password");
           throw new Error('Missing email/username or password');
         }
-
+      
         try {
           const user = await User.findOne({
             $or: [
@@ -35,24 +37,32 @@ export const authOptions: NextAuthOptions = {
               { username: credentials.identifier },
             ],
           });
-
+      
           if (!user) {
             throw new Error('No user found with this email or username');
           }
-
-          if (!user.isVerified) {
-            throw new Error('Please verify your account');
-          }
-
+      
+          // if (!user.isVerified) {
+          //   console.log("❌ User not verified:", user.email);
+          //   throw new Error('Please verify your account');
+          // }
+      
           const isPasswordCorrect = await bcrypt.compare(
             credentials.password,
             user.password
           );
-
+      
           if (!isPasswordCorrect) {
+            console.log("❌ Incorrect password for user:", user.email);
             throw new Error('Incorrect password');
           }
-
+      
+          if (!user.isVerified) {
+            user.isVerified = true;
+            await user.save();
+            console.log('✅ User marked as verified during login');
+          }
+      
           return {
             _id: user._id,
             email: user.email,
@@ -60,9 +70,10 @@ export const authOptions: NextAuthOptions = {
             isVerified: user.isVerified,
           };
         } catch (error: any) {
+          console.log("❌ Error in authorize:", error);
           throw new Error(error.message || 'Login failed');
         }
-      },
+      },      
     }),
   ],
 
@@ -74,7 +85,7 @@ export const authOptions: NextAuthOptions = {
         
         // Access Google user ID via profile.sub (Google user ID)
         token._id = profile?.sub;  // Google provides the user ID in 'sub'
-        token.username = profile?.name;  // You can use name or email as username
+        token.username = profile?.name ?? undefined;
         token.isVerified = true;  // Assuming Google users are verified by default
         console.log("Google sign-in detected", profile);
       }
