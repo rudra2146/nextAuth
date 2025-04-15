@@ -8,7 +8,7 @@ connectDB()
 
 export async function POST(request: NextRequest) {
     try {
-      const userId = await getDataFromToken(); // Call the function without request
+      const userId = await getDataFromToken();
       if (!userId) {
         throw new Error('User ID not found in token');
       }

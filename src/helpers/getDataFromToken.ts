@@ -3,10 +3,10 @@ import { cookies } from 'next/headers';
 
 export const getDataFromToken = async () => {
   const cookieStore = await cookies(); 
-  console.log("Cookies store:", cookieStore); // Log the entire cookie store to see what cookies are available.
+  console.log("Cookies store:", cookieStore);
   const token = cookieStore.get('next-auth.session-token')?.value;
 
-  console.log("Retrieved token:", token); // Log the token
+  console.log("Retrieved token:", token);
 
   if (!token) {
     throw new Error('Token missing');

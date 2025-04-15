@@ -97,6 +97,10 @@ export const authOptions: NextAuthOptions = {
         token.isVerified = user.isVerified;
       }
   
+      if (user) {
+        token.id = user._id;
+        token.username = user.username;
+      }
       return token;
     },
   

@@ -26,11 +26,11 @@ export async function POST(request: NextRequest) {
     }
 
     // Update the user's verification status on successful login
-    if (!user.isVerified) {
-      user.isVerified = true;  // Mark the user as verified
-      await user.save();       // Persist the change in the database
-      console.log("✅ User marked as verified on login");
-    }
+    // if (!user.isVerified) {
+    //   user.isVerified = true;  // Mark the user as verified
+    //   await user.save();       // Persist the change in the database
+    //   console.log("✅ User marked as verified on login");
+    // }
 
     const tokenData = {
       id: user._id,
@@ -41,7 +41,8 @@ export async function POST(request: NextRequest) {
     const token = await jwt.sign(tokenData, process.env.TOKEN_SECRET!, { expiresIn: '1d' });
 
     const response = NextResponse.json({
-      message: "Logged in successfully"
+      message: "Logged in successfully",
+      success:true
     });
 
     response.cookies.set("token", token, {
