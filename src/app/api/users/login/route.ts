@@ -6,6 +6,7 @@ import jwt from 'jsonwebtoken';
 
 connectDB();
 
+
 export async function POST(request: NextRequest) {
   try {
     const reqBody = await request.json();
@@ -15,22 +16,18 @@ export async function POST(request: NextRequest) {
     const user = await User.findOne({ email });
 
     if (!user) {
-      return NextResponse.json({ error: "User does not exist" }, { status: 400 });
+      console.log("❌ No user found for", email);
+      return NextResponse.json({ error: "No user found with this email or username" }, { status: 400 });
     }
 
-    console.log("✅ User exists");
+    const isPasswordCorrect = await bcrypt.compare(password, user.password);
 
-    const validPassword = await bcrypt.compare(password, user.password);
-    if (!validPassword) {
-      return NextResponse.json({ error: "Check your credentials" }, { status: 400 });
+    if (!isPasswordCorrect) {
+      console.log("❌ Incorrect password for:", email);
+      return NextResponse.json({ error: "Wrong password" }, { status: 400 });
     }
 
-    // Update the user's verification status on successful login
-    // if (!user.isVerified) {
-    //   user.isVerified = true;  // Mark the user as verified
-    //   await user.save();       // Persist the change in the database
-    //   console.log("✅ User marked as verified on login");
-    // }
+    console.log("✅ User authenticated");
 
     const tokenData = {
       id: user._id,
@@ -42,7 +39,7 @@ export async function POST(request: NextRequest) {
 
     const response = NextResponse.json({
       message: "Logged in successfully",
-      success:true
+      success: true
     });
 
     response.cookies.set("token", token, {

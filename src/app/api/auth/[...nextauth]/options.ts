@@ -39,7 +39,8 @@ export const authOptions: NextAuthOptions = {
           });
       
           if (!user) {
-            throw new Error('No user found with this email or username');
+            console.log("❌ No user found for", credentials.identifier);
+            throw new Error("No user found with this email or username");
           }
       
           // if (!user.isVerified) {
@@ -53,8 +54,8 @@ export const authOptions: NextAuthOptions = {
           );
       
           if (!isPasswordCorrect) {
-            console.log("❌ Incorrect password for user:", user.email);
-            throw new Error('Incorrect password');
+            console.log("❌ Incorrect password for:", credentials.identifier);
+            throw new Error("Wrong password");
           }
       
           if (!user.isVerified) {

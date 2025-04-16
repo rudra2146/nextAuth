@@ -21,14 +21,13 @@ const LoginPage = () => {
             provider: 'google',
           });
           console.log("✅ Google user synced:", res.data);
-
         } catch (err) {
           console.error("❌ Failed to sync Google user to backend:", err);
           toast.error("Failed to sync Google user");
         }
       }
     };
-  
+
     syncGoogleUser();
   }, [session, router]);
 
@@ -45,17 +44,23 @@ const LoginPage = () => {
       setLoading(true);
       const res = await signIn('credentials', {
         redirect: false,
-        identifier: user.email, // ✅ correct if email or username
+        identifier: user.email,
         password: user.password,
       });
-      
-      
+
       if (res?.ok) {
         router.push('/profile');
-      } else {
-        toast.error("Invalid credentials");
+      } else if (res?.error) {
+        if (res.error.includes("No user")) {
+          toast.error("Email not found. Please sign up first.");
+        } else if (res.error.includes("Wrong password")) {
+          toast.error("Incorrect password. Please try again.");
+        } else {
+          toast.error(res.error);
+        }
       }
       
+
     } catch (error: any) {
       console.log("Login failed");
       toast.error(error.response?.data?.message || error.message);
@@ -89,7 +94,7 @@ const LoginPage = () => {
     <div className='flex flex-col items-center justify-center min-h-screen py-2'>
       <h1>{loading ? 'Processing...' : 'Login'}</h1>
       <hr className="w-full max-w-sm my-4" />
-      
+
       <label htmlFor="email">Email</label>
       <input
         className='p-2 border border-gray-300 rounded-lg mb-4 focus:outline-none focus:border-gray-600 text-black bg-white'
